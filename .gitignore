@@ -1,0 +1,8 @@
+# Generated documentation build input
+.generated-docs/
+.generated-mkdocs.yml
+.cache/docs-sources/
+site/
+.venv/
+__pycache__/
+*.pyc
