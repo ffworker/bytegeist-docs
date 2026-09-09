@@ -1,8 +1,9 @@
-# Generated documentation build input
+# Transient documentation build input/output
 .generated-docs/
 .generated-mkdocs.yml
 .cache/docs-sources/
 site/
+site-private/
 .venv/
 __pycache__/
 *.pyc

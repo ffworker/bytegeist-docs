@@ -1,15 +1,13 @@
-name: Nightly documentation snapshot
+name: Nightly private documentation CD
 
 on:
   schedule:
-    - cron: '45 23 * * *'
-      timezone: 'Europe/Berlin'
+    - cron: "45 23 * * *"
+      timezone: "Europe/Berlin"
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: bytegeist-docs-nightly
@@ -17,7 +15,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build frozen daily snapshot
+    name: Build latest private snapshot
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,45 +24,17 @@ jobs:
           python-version: '3.13'
           cache: pip
       - run: python -m pip install -r requirements.txt
-      - name: Require private source read token
+      - name: Require private source read credential
         env:
           GH_TOKEN: ${{ secrets.DOCS_REPO_TOKEN }}
         run: test -n "$GH_TOKEN"
-      - name: Retrieve latest default branches and build private/full site
+      - name: Retrieve latest default branches and build privately
         env:
           GH_TOKEN: ${{ secrets.DOCS_REPO_TOKEN }}
         run: |
           python scripts/import_docs.py --clean
-          mkdocs build --strict -f .generated-mkdocs.yml -d site-private
-      - name: Retain private/full build as a private artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: bytegeist-docs-private-${{ github.run_id }}
-          path: site-private/
-          retention-days: 2
-      - name: Build and validate public-safe site
-        run: |
-          python scripts/import_docs.py --clean --public
-          python scripts/assert_public_safe.py
-          mkdocs build --strict -f .generated-public-mkdocs.yml -d site-public
-      - name: Upload public Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site-public/
-
-  publish:
-    name: Publish public-safe site when Pages is enabled
-    needs: build
-    if: vars.ENABLE_PUBLIC_PAGES == 'true'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy public-safe artifact
-        id: deployment
-        uses: actions/deploy-pages@v4
-      - name: Verify deployed site
-        env:
-          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
-        run: curl --fail --silent --show-error --retry 5 --retry-delay 5 "$PAGE_URL"
+          mkdocs build --strict -f .generated-mkdocs.yml -d site
+      - name: Assert generated output is not tracked or uploaded
+        run: test -z "$(git ls-files .generated-docs .generated-mkdocs.yml site)"
+      # Private deployment is intentionally not enabled until the approved
+      # Pi/K3s target and authenticated transport are verified.

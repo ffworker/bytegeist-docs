@@ -1,25 +1,14 @@
 # Documentation System
 
-Repository-specific technical information stays with its owning repository.
-Infrastructure operations stay in `infra-configs`. Learning material stays in
-`cka-lab`. Cross-repository and global workflow information is owned here.
+This public repository owns only global, cross-repository documentation
+workflow and orchestration explanation. Technical documentation remains in its
+canonical source repository:
 
-## Build outputs
+- applications → their own README/docs;
+- infrastructure operations → `infra-configs`;
+- learning and labs → `cka-lab`;
+- global workflow explanation → this repository.
 
-- Public output: only `docs/public/`; safe for a future public Pages deployment.
-- Private/full output: all global docs plus generated source-repository docs;
-  retained only as a private GitHub Actions artifact.
-
-The public build has a separate generated directory and separate MkDocs
-configuration. It cannot accidentally receive the private import tree.
-
-## Update rule
-
-Ask: **Does someone or another agent need to know this later?**
-
-- Repo-specific technical information → that repo's README/docs in the same PR.
-- Infrastructure operational information → `infra-configs`.
-- Global/cross-repository information → `bytegeist-docs`.
-- Learning information → `cka-lab`.
-
-Do not maintain two editable canonical copies of the same explanation.
+The source manifest declares participating repositories and paths. Trusted
+workflows retrieve those paths into a transient workspace, build the private
+site, and discard the generated files. No imported content is committed here.

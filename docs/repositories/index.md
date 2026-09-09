@@ -1,10 +1,10 @@
-# Repository Index
+# Repository Portfolio
 
-This private index describes the current repository portfolio. Detailed
-technical documentation is owned by each source repository and imported at
-build time from `docs-sources.yml`.
+The canonical technical documentation remains in each source repository. This
+repository demonstrates the aggregation workflow without committing imported
+source contents.
 
-## Active Engineering
+## Active engineering
 
 - Signaturee
 - mywebsite
@@ -12,21 +12,10 @@ build time from `docs-sources.yml`.
 - camdash-board
 - local-ragbot
 
-## Infrastructure
+## Infrastructure and learning
 
 - infra-configs
-
-## Learning
-
 - cka-lab
 
-## Documentation
-
-- bytegeist-docs
-
-## Archived
-
-- Peirates
-- Dennaar
-
-Archived and superseded repositories are not normal Hermes/Larry routing targets.
+The source names and documentation paths are metadata. The imported contents
+are retrieved only in trusted workflows and are never committed here.
