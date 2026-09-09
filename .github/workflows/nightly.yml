@@ -47,6 +47,7 @@ jobs:
         with:
           setup-key: ${{ secrets.DOCS_NETBIRD_SETUP_KEY }}
           hostname: github-docs-${{ github.run_id }}
+          management-url: https://access.bytegeist.dev:443
       - name: Install pinned VPS02 host key and deployment key
         env:
           DEPLOY_KEY: ${{ secrets.DOCS_VPS02_SSH_KEY }}
