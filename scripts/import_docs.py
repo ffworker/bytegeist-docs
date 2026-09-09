@@ -1,68 +1,60 @@
-\
 #!/usr/bin/env python3
-"""Fetch declared repository docs into generated MkDocs input."""
+"""Retrieve declared docs and generate deterministic MkDocs configurations."""
 from __future__ import annotations
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
+from urllib.parse import quote
 
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "docs-sources.yml"
-GENERATED = ROOT / ".generated-docs"
+PRIVATE_DOCS = ROOT / ".generated-docs"
+PUBLIC_DOCS = ROOT / ".generated-public-docs"
+PRIVATE_CONFIG = ROOT / ".generated-mkdocs.yml"
+PUBLIC_CONFIG = ROOT / ".generated-public-mkdocs.yml"
 CACHE = ROOT / ".cache" / "docs-sources"
 
 
-def run(*args: str, cwd: Path | None = None) -> None:
-    subprocess.run(args, cwd=cwd, check=True)
+def run(*args: str) -> None:
+    subprocess.run(args, cwd=ROOT, check=True)
 
 
-def source_checkout(name: str, repo: str, local_root: Path | None) -> Path:
+def checkout(name: str, repo: str, local_root: Path | None) -> Path:
     if local_root:
-        candidates = [local_root / name, local_root / repo.rsplit("/", 1)[-1]]
-        for candidate in candidates:
+        for candidate in (local_root / name, local_root / repo.rsplit("/", 1)[-1]):
             if (candidate / ".git").exists():
                 return candidate
     target = CACHE / name
-    CACHE.mkdir(parents=True, exist_ok=True)
     if not (target / ".git").exists():
+        CACHE.mkdir(parents=True, exist_ok=True)
         token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
-        url = f"https://github.com/{repo}.git"
         if token and shutil.which("gh"):
             run("gh", "repo", "clone", repo, str(target), "--", "--depth=1")
-        elif token:
-            run("git", "clone", "--depth=1", url, str(target))
         else:
-            run("git", "clone", "--depth=1", url, str(target))
+            run("git", "clone", "--depth=1", f"https://github.com/{repo}.git", str(target))
     return target
 
 
-def copy_declared(source: Path, destination: Path, relative: str) -> None:
+def copy_path(source: Path, target: Path, relative: str) -> None:
     src = source / relative
     if not src.exists():
         raise SystemExit(f"Declared documentation path does not exist: {source.name}/{relative}")
+    dst = target / relative.rstrip("/")
     if src.is_dir():
-        target = destination / relative.rstrip("/")
-        shutil.copytree(src, target, dirs_exist_ok=True,
+        shutil.copytree(src, dst, dirs_exist_ok=True,
                         ignore=shutil.ignore_patterns(".git", "__pycache__"))
     else:
-        target = destination / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, target)
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dst)
 
 
-def label(path: str) -> str:
-    return path.rsplit("/", 1)[-1].replace(".md", "").replace("_", " ").replace("-", " ").title()
-
-
-def rewrite_relative_links(target: Path, source: Path, repo: str) -> None:
-    """Point unresolved/source-relative links back to their canonical GitHub source."""
-    import re
-    from urllib.parse import quote
+def rewrite_source_links(target: Path, source: Path, repo: str) -> None:
     for page in target.rglob("*.md"):
         source_page = source / page.relative_to(target)
         text = page.read_text()
@@ -82,73 +74,71 @@ def rewrite_relative_links(target: Path, source: Path, repo: str) -> None:
         page.write_text(re.sub(r"\]\(([^)]+)\)", replace, text))
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--local-repos-dir", type=Path,
-                        help="Use sibling local clones instead of fetching repositories")
-    parser.add_argument("--clean", action="store_true")
-    args = parser.parse_args()
-    if args.clean:
-        shutil.rmtree(GENERATED, ignore_errors=True)
-        (ROOT / ".generated-mkdocs.yml").unlink(missing_ok=True)
-    GENERATED.mkdir(parents=True, exist_ok=True)
-    # Global pages are authored in bytegeist-docs; repository pages are generated.
-    shutil.copytree(ROOT / "docs", GENERATED, dirs_exist_ok=True)
-    source_data = yaml.safe_load(MANIFEST.read_text())
-    repositories = source_data.get("repositories", {})
-    imported_nav = []
-    for name, config in repositories.items():
-        source = source_checkout(name, config["repo"], args.local_repos_dir)
-        target = GENERATED / "repositories" / name
-        for path in config["paths"]:
-            copy_declared(source, target, path)
-        rewrite_relative_links(target, source, config["repo"])
-        files = sorted((target).rglob("*.md"))
-        entries = []
-        for file in files:
-            rel = file.relative_to(GENERATED).as_posix()
-            entries.append({label(file.stem): rel})
-        imported_nav.append({name: entries})
+def title(path: Path) -> str:
+    return path.stem.replace("_", " ").replace("-", " ").title()
 
-    # Build a complete generated MkDocs config so strict mode sees every imported page.
+
+def navigation(root: Path, relative: Path = Path(".")) -> list[dict[str, object]]:
+    items: list[dict[str, object]] = []
+    directory = root / relative
+    for child in sorted(directory.iterdir(), key=lambda p: (p.is_file(), p.name.lower())):
+        if child.name.startswith(".") or child.suffix not in (".md", ""):
+            continue
+        rel = (relative / child.name).as_posix().lstrip("./")
+        if child.is_dir():
+            nested = navigation(root, relative / child.name)
+            if nested:
+                items.append({title(child): nested})
+        elif child.suffix == ".md":
+            items.append({title(child): rel})
+    return items
+
+
+def write_config(path: Path, docs_dir: str) -> None:
     config = {
         "site_name": "Bytegeist Docs",
-        "site_description": "Global Bytegeist architecture, workflows, and repository documentation portal.",
+        "site_description": "Bytegeist documentation portal",
         "site_url": "https://docs.lab.bytegeist.info/",
-        "docs_dir": ".generated-docs",
+        "docs_dir": docs_dir,
         "strict": True,
         "theme": {"name": "material", "language": "en", "font": False,
                   "features": ["navigation.sections", "navigation.top", "search.suggest", "search.highlight"]},
-        "nav": [
-            {"Home": "index.md"},
-            {"Architecture": [
-                {"Overview": "architecture/overview.md"},
-                {"Homelab": "architecture/homelab.md"},
-                {"Infrastructure": "architecture/infrastructure.md"},
-                {"AI Workflow": "architecture/ai-workflow.md"},
-            ]},
-            {"Repositories": [{"Overview": "repositories/index.md"}]},
-            {"Workflows": [
-                {"Linear and GitHub": "workflows/linear-github.md"},
-                {"Development": "workflows/development.md"},
-                {"CI/CD": "workflows/ci-cd.md"},
-                {"Documentation": "workflows/documentation.md"},
-            ]},
-            {"Systems": [
-                {"GitHub": "systems/github.md"},
-                {"Forgejo": "systems/forgejo.md"},
-                {"Linear": "systems/linear.md"},
-                {"Hermes and Larry": "systems/hermes-larry.md"},
-            ]},
-            {"Decisions": "decisions/index.md"},
-            {"Imported repository documentation": imported_nav},
-        ],
+        "nav": navigation(ROOT / docs_dir),
         "plugins": ["search"],
         "markdown_extensions": ["admonition", "tables", "pymdownx.details", "pymdownx.superfences",
                                 {"toc": {"permalink": True}}],
     }
-    (ROOT / ".generated-mkdocs.yml").write_text(yaml.safe_dump(config, sort_keys=False))
-    print(f"Imported {len(repositories)} repositories into {GENERATED}")
+    path.write_text(yaml.safe_dump(config, sort_keys=False))
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--public", action="store_true", help="Generate only docs/public content")
+    parser.add_argument("--local-repos-dir", type=Path)
+    parser.add_argument("--clean", action="store_true")
+    args = parser.parse_args()
+    if args.clean:
+        shutil.rmtree(PRIVATE_DOCS, ignore_errors=True)
+        shutil.rmtree(PUBLIC_DOCS, ignore_errors=True)
+        PRIVATE_CONFIG.unlink(missing_ok=True)
+        PUBLIC_CONFIG.unlink(missing_ok=True)
+    if args.public:
+        shutil.copytree(ROOT / "docs" / "public", PUBLIC_DOCS, dirs_exist_ok=True)
+        write_config(PUBLIC_CONFIG, PUBLIC_DOCS.name)
+        print(f"Prepared public-safe documentation in {PUBLIC_DOCS}")
+        return
+
+    shutil.copytree(ROOT / "docs", PRIVATE_DOCS, dirs_exist_ok=True)
+    data = yaml.safe_load(MANIFEST.read_text())
+    repositories = data.get("repositories", {})
+    for name, config in repositories.items():
+        source = checkout(name, config["repo"], args.local_repos_dir)
+        target = PRIVATE_DOCS / "repositories" / name
+        for path in config["paths"]:
+            copy_path(source, target, path)
+        rewrite_source_links(target, source, config["repo"])
+    write_config(PRIVATE_CONFIG, PRIVATE_DOCS.name)
+    print(f"Prepared private/full documentation for {len(repositories)} repositories in {PRIVATE_DOCS}")
 
 
 if __name__ == "__main__":
