@@ -1,19 +1,22 @@
-# Bytegeist Documentation
+# Bytegeist Documentation Automation
 
-Global and cross-repository documentation portal for the Bytegeist system.
+This public repository demonstrates how documentation owned by multiple
+repositories is continuously validated and frozen for private delivery.
 
-The public-safe build uses only [`docs/public/`](public/index.md). The private/full
-build additionally includes the global private pages in this repository and
-read-only generated documentation from the repositories declared in
-`docs-sources.yml`. Generated imports are build input, never canonical copies.
+```text
+source README/docs
+  -> trusted retrieval
+  -> strict validation during the day
+  -> 23:45 Europe/Berlin frozen build
+  -> private documentation runtime
+```
 
-## Boundaries
+The rendered documentation product is private. This public repository contains
+only safe workflow/orchestration documentation, a source manifest, and build
+ tooling. Imported repository contents and generated site output are transient
+workflow data only.
 
-- Linear owns work, tickets, ideas, and status.
-- GitHub owns implementation history, PRs, CI, and CD.
-- `infra-configs` owns infrastructure desired state and operational docs.
-- `cka-lab` owns learning and lab material.
+- Linear is the canonical work system.
+- GitHub is the implementation, PR, CI, and CD platform.
 - Forgejo is mirror/recovery only.
-- Hermes/Larry orchestrates but does not replace these systems.
-
-See the public-safe pages for the shareable workflow and architecture view.
+- Hermes/Larry orchestrates without replacing those systems.

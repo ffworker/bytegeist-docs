@@ -4,13 +4,17 @@ on:
   pull_request:
   push:
     branches: [main]
+  repository_dispatch:
+    types: [docs-source-updated]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  public:
-    name: Public-safe strict build
+  committed-docs:
+    name: Public repository strict build
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,17 +23,15 @@ jobs:
           python-version: '3.13'
           cache: pip
       - run: python -m pip install -r requirements.txt
-      - run: python scripts/import_docs.py --clean --public
-      - run: python scripts/assert_public_safe.py
-      - run: mkdocs build --strict -f .generated-public-mkdocs.yml -d site-public
-      - uses: actions/upload-artifact@v4
-        with:
-          name: bytegeist-docs-public-ci
-          path: site-public/
-          retention-days: 7
+      - run: python scripts/check_repository_safety.py
+      - run: python -c "import yaml; yaml.safe_load(open('docs-sources.yml'))"
+      - run: python -m py_compile scripts/*.py
+      - run: python scripts/import_docs.py --clean --no-sources
+      - run: mkdocs build --strict -f .generated-mkdocs.yml -d site
 
-  private:
-    name: Private/full strict build when credentials exist
+  trusted-full-docs:
+    name: Trusted full documentation validation
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,23 +40,15 @@ jobs:
           python-version: '3.13'
           cache: pip
       - run: python -m pip install -r requirements.txt
-      - name: Build private/full documentation when safe token is configured
-        id: private
+      - name: Require private source read credential
+        env:
+          GH_TOKEN: ${{ secrets.DOCS_REPO_TOKEN }}
+        run: test -n "$GH_TOKEN"
+      - name: Retrieve latest sources and validate full build
         env:
           GH_TOKEN: ${{ secrets.DOCS_REPO_TOKEN }}
         run: |
-          set -euo pipefail
-          if [ -z "$GH_TOKEN" ]; then
-            echo 'DOCS_REPO_TOKEN is not configured; private build is skipped on this PR.'
-            echo 'available=false' >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
           python scripts/import_docs.py --clean
-          mkdocs build --strict -f .generated-mkdocs.yml -d site-private
-          echo 'available=true' >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@v4
-        if: steps.private.outputs.available == 'true'
-        with:
-          name: bytegeist-docs-private-ci
-          path: site-private/
-          retention-days: 2
+          mkdocs build --strict -f .generated-mkdocs.yml -d site
+      - name: Assert generated output is not tracked
+        run: test -z "$(git ls-files .generated-docs .generated-mkdocs.yml site)"

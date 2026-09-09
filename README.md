@@ -1,34 +1,52 @@
-# bytegeist-docs
+# Bytegeist Docs
 
-Global and cross-repository documentation portal for Bytegeist.
+[![Documentation CI](https://github.com/ffworker/bytegeist-docs/actions/workflows/ci.yml/badge.svg)](https://github.com/ffworker/bytegeist-docs/actions/workflows/ci.yml)
+[![Nightly private documentation CD](https://github.com/ffworker/bytegeist-docs/actions/workflows/nightly.yml/badge.svg)](https://github.com/ffworker/bytegeist-docs/actions/workflows/nightly.yml)
 
-## Local build
+This public repository demonstrates distributed documentation ownership and
+safe aggregation. Application, infrastructure, and learning repositories keep
+their own canonical README/docs content. Trusted automation retrieves selected
+paths, validates the complete documentation universe, and builds a private
+static site without committing or publicly storing imported content.
 
-Requires sibling read-only clones of the repositories in `docs-sources.yml`,
-or a GitHub token for fetching them:
-
-```bash
-python3 -m venv .venv
-. .venv/bin/activate
-pip install -r requirements.txt
-python scripts/import_docs.py --clean --local-repos-dir ../
-mkdocs build --strict -f .generated-mkdocs.yml
-mkdocs serve -f .generated-mkdocs.yml
+```text
+source README/docs
+  -> change-triggered aggregate validation
+  -> 23:45 Europe/Berlin frozen build
+  -> private deployment target: docs.lab.bytegeist.info
 ```
 
-The CI workflow needs a repository read token in the `DOCS_REPO_TOKEN` secret
-with read access to the private source repositories. Local builds can avoid a
-token by using sibling clones with `--local-repos-dir`.
-
-The imported files under `.generated-docs/` are generated build input. Do not
-edit them or commit them. Edit the canonical source repository instead.
+The public showcase is this repository and its workflows—not a public rendered
+documentation website. GitHub Pages is not used. Full builds run only in trusted
+workflow contexts with the approved read credential; untrusted fork PRs build
+only the safe documentation committed here and never receive private access.
 
 ## Ownership
 
-- Global/cross-repository architecture and workflows: this repository.
-- Application code and technical docs: the application repository.
-- Infrastructure desired state and operational docs: `infra-configs`.
-- Learning material: `cka-lab`.
-- Work and status: Linear.
-- GitHub: canonical Git, PR, and CI/CD platform.
+- Application technical docs: the owning application repository.
+- Infrastructure operational docs: `infra-configs`.
+- Learning, labs, and QA: `cka-lab`.
+- Global workflow and cross-repository orchestration: this repository.
+- Work/status: Linear; implementation, PRs, CI/CD, and history: GitHub.
 - Forgejo: mirror/recovery only.
+
+See [`docs-sources.yml`](docs-sources.yml) for the public manifest of source
+repositories and imported paths. Imported contents are generated build inputs,
+not editable copies.
+
+## Operations
+
+Source repositories notify `ffworker/bytegeist-docs` with a narrow
+`repository_dispatch` event after documentation paths change on `main`. Each
+source repository needs a secret named `DOCS_DISPATCH_TOKEN` containing a
+fine-grained token limited to `ffworker/bytegeist-docs` with only Contents:
+Read and write permission (used for the dispatch endpoint). The token must not
+be included in event payloads.
+
+The full private build uses `DOCS_REPO_TOKEN` only in trusted workflows. It is
+never used by pull-request builds and never uploaded as an Actions artifact.
+Static documentation replacement is the only permitted automatic deployment
+exception; changes to cluster infrastructure, ingress, DNS, authentication,
+networking, storage, or secrets remain approval-gated.
+
+The current private runtime must be verified before enabling automatic delivery.
