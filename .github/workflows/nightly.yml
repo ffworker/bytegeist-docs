@@ -48,6 +48,23 @@ jobs:
           setup-key: ${{ secrets.DOCS_NETBIRD_SETUP_KEY }}
           hostname: github-docs-${{ github.run_id }}
           management-url: https://access.bytegeist.dev:443
+      - name: Wait for VPS02 TCP/22 readiness
+        run: |
+          sudo netbird status --json | jq '{daemonVersion, fqdn, netbirdIp, management: {url: .management.url, connected: .management.connected}, signal: {connected: .signal.connected}}'
+          reachable=false
+          for attempt in $(seq 1 12); do
+            if timeout 5 bash -c "</dev/tcp/${DOCS_VPS02_HOST}/22" 2>/dev/null; then
+              echo "VPS02 TCP/22 reachable on attempt $attempt"
+              reachable=true
+              break
+            fi
+            echo "VPS02 TCP/22 not reachable on attempt $attempt/12"
+            sleep 5
+          done
+          if [ "$reachable" != true ]; then
+            echo 'VPS02 TCP/22 did not become reachable after 60 seconds.' >&2
+            exit 1
+          fi
       - name: Install pinned VPS02 host key and deployment key
         env:
           DEPLOY_KEY: ${{ secrets.DOCS_VPS02_SSH_KEY }}
