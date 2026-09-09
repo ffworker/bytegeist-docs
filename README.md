@@ -49,4 +49,4 @@ Static documentation replacement is the only permitted automatic deployment
 exception; changes to cluster infrastructure, ingress, DNS, authentication,
 networking, storage, or secrets remain approval-gated.
 
-The current private runtime must be verified before enabling automatic delivery.
+The nightly/manual workflow connects to the existing private NetBird network, transfers the generated site over pinned-key SSH, atomically replaces `/opt/bytegeist-docs/site` on VPS02, and verifies the private HTTPS endpoint. This is the narrow static-content deployment exception; infrastructure changes remain approval-gated.
