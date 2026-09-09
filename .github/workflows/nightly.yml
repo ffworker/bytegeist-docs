@@ -58,11 +58,10 @@ jobs:
           chmod 600 "$HOME/.ssh/bytegeist-docs-vps02"
           printf '%s ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGLh5liBzZQZvB6p+G2mC3XTycrcPTzFt/OBsixdTWSI\n' "$DOCS_VPS02_HOST" > "$HOME/.ssh/known_hosts"
       - name: Copy and atomically activate the private site
-        env:
-          SSH_OPTS: -i $HOME/.ssh/bytegeist-docs-vps02 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes
         run: |
-          scp $SSH_OPTS "$RUNNER_TEMP/bytegeist-docs-site.tgz" "dennis@$DOCS_VPS02_HOST:/tmp/bytegeist-docs-site-$GITHUB_RUN_ID.tgz"
-          ssh $SSH_OPTS "dennis@$DOCS_VPS02_HOST" "RUN_ID='$GITHUB_RUN_ID' bash -s" <<'REMOTE'
+          key="$HOME/.ssh/bytegeist-docs-vps02"
+          scp -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes "$RUNNER_TEMP/bytegeist-docs-site.tgz" "dennis@$DOCS_VPS02_HOST:/tmp/bytegeist-docs-site-$GITHUB_RUN_ID.tgz"
+          ssh -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes "dennis@$DOCS_VPS02_HOST" "RUN_ID='$GITHUB_RUN_ID' bash -s" <<'REMOTE'
           set -euo pipefail
           archive="/tmp/bytegeist-docs-site-${RUN_ID}.tgz"
           staging="/tmp/bytegeist-docs-site-${RUN_ID}"
