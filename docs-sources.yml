@@ -1,0 +1,35 @@
+repositories:
+  Signaturee:
+    repo: ffworker/Signaturee
+    paths:
+      - README.md
+      - docs/
+  mywebsite:
+    repo: ffworker/mywebsite
+    paths:
+      - README.md
+  coach-potato-app:
+    repo: ffworker/coach-potato-app
+    paths:
+      - README.md
+      - docs/
+  camdash-board:
+    repo: ffworker/camdash-board
+    paths:
+      - README.md
+  local-ragbot:
+    repo: ffworker/local-ragbot
+    paths:
+      - README.md
+      - docs/
+  infra-configs:
+    repo: ffworker/infra-configs
+    paths:
+      - README.md
+      - docs/
+      - labs/proxmox/docs/
+  cka-lab:
+    repo: ffworker/cka-lab
+    paths:
+      - README.md
+      - docs/
