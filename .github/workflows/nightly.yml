@@ -13,6 +13,9 @@ concurrency:
   group: bytegeist-docs-nightly
   cancel-in-progress: false
 
+env:
+  DOCS_VPS02_HOST: ${{ vars.DOCS_VPS02_HOST }}
+
 jobs:
   build:
     name: Build latest private snapshot
@@ -34,7 +37,54 @@ jobs:
         run: |
           python scripts/import_docs.py --clean
           mkdocs build --strict -f .generated-mkdocs.yml -d site
+          printf 'run_id=%s\ncommit=%s\n' "$GITHUB_RUN_ID" "$GITHUB_SHA" > site/.bytegeist-build
       - name: Assert generated output is not tracked or uploaded
         run: test -z "$(git ls-files .generated-docs .generated-mkdocs.yml site)"
-      # Private deployment is intentionally not enabled until the approved
-      # Pi/K3s target and authenticated transport are verified.
+      - name: Archive site only in the runner workspace
+        run: tar -C "$GITHUB_WORKSPACE" -czf "$RUNNER_TEMP/bytegeist-docs-site.tgz" site
+      - name: Connect runner to the existing private NetBird network
+        uses: Alemiz112/netbird-connect@8aa36452fc8229f9d98b0f22f2ac7bfa90d2552b
+        with:
+          setup-key: ${{ secrets.DOCS_NETBIRD_SETUP_KEY }}
+          hostname: github-docs-${{ github.run_id }}
+      - name: Install pinned VPS02 host key and deployment key
+        env:
+          DEPLOY_KEY: ${{ secrets.DOCS_VPS02_SSH_KEY }}
+        run: |
+          test -n "$DOCS_VPS02_HOST"
+          test -n "$DEPLOY_KEY"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/bytegeist-docs-vps02"
+          chmod 600 "$HOME/.ssh/bytegeist-docs-vps02"
+          printf '%s ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGLh5liBzZQZvB6p+G2mC3XTycrcPTzFt/OBsixdTWSI\n' "$DOCS_VPS02_HOST" > "$HOME/.ssh/known_hosts"
+      - name: Copy and atomically activate the private site
+        env:
+          SSH_OPTS: -i $HOME/.ssh/bytegeist-docs-vps02 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes
+        run: |
+          scp $SSH_OPTS "$RUNNER_TEMP/bytegeist-docs-site.tgz" "dennis@$DOCS_VPS02_HOST:/tmp/bytegeist-docs-site-$GITHUB_RUN_ID.tgz"
+          ssh $SSH_OPTS "dennis@$DOCS_VPS02_HOST" "RUN_ID='$GITHUB_RUN_ID' bash -s" <<'REMOTE'
+          set -euo pipefail
+          archive="/tmp/bytegeist-docs-site-${RUN_ID}.tgz"
+          staging="/tmp/bytegeist-docs-site-${RUN_ID}"
+          rm -rf "$staging"
+          mkdir "$staging"
+          tar -xzf "$archive" -C "$staging"
+          test -f "$staging/site/index.html"
+          test -f "$staging/site/.bytegeist-build"
+          if [ -d /opt/bytegeist-docs/site ]; then
+            mv -T /opt/bytegeist-docs/site "/opt/bytegeist-docs/site.previous-${RUN_ID}"
+          fi
+          mv -T "$staging/site" /opt/bytegeist-docs/site
+          rm -rf "/opt/bytegeist-docs/site.previous-${RUN_ID}" "$staging" "$archive"
+          REMOTE
+      - name: Verify private endpoint serves this deployment
+        run: |
+          expected="run_id=$GITHUB_RUN_ID"
+          for attempt in 1 2 3 4 5; do
+            if curl --fail --silent --show-error "https://docs.lab.bytegeist.info/.bytegeist-build" | grep -Fqx "$expected"; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "private endpoint did not serve $expected" >&2
+          exit 1
