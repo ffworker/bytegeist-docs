@@ -1,36 +1,32 @@
 # Repository Index
 
-Only the following repositories are in the permanent working architecture. Detailed documentation is owned by each repository and imported here at build time from `docs-sources.yml`.
+This private index describes the current repository portfolio. Detailed
+technical documentation is owned by each source repository and imported at
+build time from `docs-sources.yml`.
 
 ## Active Engineering
 
-| Repository | Purpose | Linear workflow | CI/CD | Documentation source |
-| --- | --- | --- | --- | --- |
-| [Signaturee](https://github.com/ffworker/Signaturee) | Outlook signature automation | Yes | CI/quality gates; deployment waits for live reconciliation | `README.md`, `docs/` |
-| [mywebsite](https://github.com/ffworker/mywebsite) | `cv.bytegeist.dev` public website | Yes | Static validation and existing Pages delivery | `README.md` |
-| [coach-potato-app](https://github.com/ffworker/coach-potato-app) | Phone-first training application | Yes | CI plus manual `vps-alpha` delivery | `README.md`, `docs/` |
-| [camdash-board](https://github.com/ffworker/camdash-board) | Authenticated camera dashboards | Yes | Tests, image builds, Compose validation, gated deployment | `README.md` |
-| [local-ragbot](https://github.com/ffworker/local-ragbot) | Local-first private RAG incubator | Yes | CI only; no production CD | `README.md`, `docs/` |
+- Signaturee
+- mywebsite
+- coach-potato-app
+- camdash-board
+- local-ragbot
 
 ## Infrastructure
 
-| Repository | Purpose | Workflow | Documentation source |
-| --- | --- | --- | --- |
-| [infra-configs](https://github.com/ffworker/infra-configs) | Infrastructure desired state and operational knowledge | Linear plus reviewed PRs; deployment approval-gated | `README.md`, `docs/`, `labs/proxmox/docs/` |
+- infra-configs
 
 ## Learning
 
-| Repository | Purpose | Workflow | Documentation source |
-| --- | --- | --- | --- |
-| [cka-lab](https://github.com/ffworker/cka-lab) | Learning, labs, notes, and QA | Linear when work is requested; no product CD | `README.md`, `docs/` |
+- cka-lab
 
 ## Documentation
 
-- [bytegeist-docs](https://github.com/ffworker/bytegeist-docs) — this global portal.
+- bytegeist-docs
 
 ## Archived
 
-- [Peirates](https://github.com/ffworker/Peirates)
-- [Dennaar](https://github.com/ffworker/Dennaar)
+- Peirates
+- Dennaar
 
-Archived and superseded repositories are not normal agent/task automation targets.
+Archived and superseded repositories are not normal Hermes/Larry routing targets.
