@@ -96,12 +96,16 @@ jobs:
           REMOTE
       - name: Verify private endpoint serves this deployment
         run: |
-          expected="run_id=$GITHUB_RUN_ID"
+          key="$HOME/.ssh/bytegeist-docs-vps02"
+          ssh -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes "docs-deploy@$DOCS_VPS02_HOST" "RUN_ID='$GITHUB_RUN_ID' bash -s" <<'REMOTE'
+          set -euo pipefail
+          expected="run_id=${RUN_ID}"
           for attempt in 1 2 3 4 5; do
-            if curl --fail --silent --show-error "https://docs.lab.bytegeist.info/.bytegeist-build" | grep -Fqx "$expected"; then
+            if curl --connect-timeout 5 --max-time 15 --fail --silent --show-error --resolve docs.lab.bytegeist.info:443:127.0.0.1 "https://docs.lab.bytegeist.info/.bytegeist-build" | grep -Fqx "$expected"; then
               exit 0
             fi
             sleep 5
           done
-          echo "private endpoint did not serve $expected" >&2
+          echo "private endpoint did not serve $expected through local Traefik/SNI" >&2
           exit 1
+          REMOTE
