@@ -78,8 +78,8 @@ jobs:
       - name: Copy and atomically activate the private site
         run: |
           key="$HOME/.ssh/bytegeist-docs-vps02"
-          scp -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes "$RUNNER_TEMP/bytegeist-docs-site.tgz" "dennis@$DOCS_VPS02_HOST:/tmp/bytegeist-docs-site-$GITHUB_RUN_ID.tgz"
-          ssh -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes "dennis@$DOCS_VPS02_HOST" "RUN_ID='$GITHUB_RUN_ID' bash -s" <<'REMOTE'
+          scp -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes "$RUNNER_TEMP/bytegeist-docs-site.tgz" "docs-deploy@$DOCS_VPS02_HOST:/tmp/bytegeist-docs-site-$GITHUB_RUN_ID.tgz"
+          ssh -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes "docs-deploy@$DOCS_VPS02_HOST" "RUN_ID='$GITHUB_RUN_ID' bash -s" <<'REMOTE'
           set -euo pipefail
           archive="/tmp/bytegeist-docs-site-${RUN_ID}.tgz"
           staging="/tmp/bytegeist-docs-site-${RUN_ID}"
