@@ -27,7 +27,6 @@ repositories:
     paths:
       - README.md
       - docs/
-      - labs/proxmox/docs/
   travel-router:
     repo: ffworker/travel-router
     paths:
