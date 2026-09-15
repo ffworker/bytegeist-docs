@@ -4,7 +4,7 @@ repositories:
     paths:
       - README.md
       - docs/
-  mywebsite:
+  my-digital-cv:
     repo: ffworker/my-digital-cv
     paths:
       - README.md
