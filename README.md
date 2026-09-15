@@ -2,7 +2,6 @@
 
 [![Documentation CI](https://github.com/ffworker/bytegeist-docs/actions/workflows/ci.yml/badge.svg)](https://github.com/ffworker/bytegeist-docs/actions/workflows/ci.yml)
 [![Nightly private documentation CD](https://github.com/ffworker/bytegeist-docs/actions/workflows/nightly.yml/badge.svg)](https://github.com/ffworker/bytegeist-docs/actions/workflows/nightly.yml)
-[![Live CV](https://img.shields.io/badge/live_cv-cv.bytegeist.dev-0f766e?logo=googlechrome&logoColor=white)](https://cv.bytegeist.dev)
 
 This public repository demonstrates distributed documentation ownership and
 safe aggregation. Application, infrastructure, and learning repositories keep
