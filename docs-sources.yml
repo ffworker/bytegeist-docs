@@ -5,7 +5,7 @@ repositories:
       - README.md
       - docs/
   mywebsite:
-    repo: ffworker/mywebsite
+    repo: ffworker/my-digital-cv
     paths:
       - README.md
   coach-potato-app:
@@ -34,6 +34,11 @@ repositories:
       - docs/
   cka-lab:
     repo: ffworker/cka-lab
+    paths:
+      - README.md
+      - docs/
+  proxmox-lab:
+    repo: ffworker/proxmox-lab
     paths:
       - README.md
       - docs/
