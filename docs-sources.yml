@@ -28,6 +28,11 @@ repositories:
       - README.md
       - docs/
       - labs/proxmox/docs/
+  travel-router:
+    repo: ffworker/travel-router
+    paths:
+      - README.md
+      - docs/
   cka-lab:
     repo: ffworker/cka-lab
     paths:
