@@ -37,8 +37,3 @@ repositories:
     paths:
       - README.md
       - docs/
-  proxmox-lab:
-    repo: ffworker/proxmox-lab
-    paths:
-      - README.md
-      - docs/

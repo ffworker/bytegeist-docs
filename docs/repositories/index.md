@@ -15,7 +15,8 @@ source contents.
 ## Infrastructure and learning
 
 - infra-configs
-- cka-lab
+- homelab-talos
+- cka-lab (learning only)
 
 The source names and documentation paths are metadata. The imported contents
 are retrieved only in trusted workflows and are never committed here.
