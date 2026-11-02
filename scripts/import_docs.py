@@ -143,24 +143,54 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--local-repos-dir", type=Path)
     parser.add_argument("--no-sources", action="store_true", help="Build only committed safe documentation; never retrieve repositories")
+    parser.add_argument("--list-sources", action="store_true",
+                        help="Check source manifest and list configured repos without cloning")
     parser.add_argument("--clean", action="store_true")
     args = parser.parse_args()
+    data = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
+    if not isinstance(data, dict) or not isinstance(data.get("repositories"), dict):
+        raise ValueError("docs-sources.yml needs a repositories mapping")
+    repositories = data["repositories"]
+    for name, config in repositories.items():
+        if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", name):
+            raise ValueError(f"unsafe source name: {name!r}")
+        if not isinstance(config, dict) or not re.fullmatch(r"ffworker/[A-Za-z0-9][A-Za-z0-9_.-]*", str(config.get("repo", ""))):
+            raise ValueError(f"unsafe repository for {name}")
+        if "paths" in config and (not isinstance(config["paths"], list) or not config["paths"]):
+            raise ValueError(f"paths for {name} must be a non-empty list")
+    if args.list_sources:
+        for name, config in repositories.items():
+            print(f"{name}: {config['repo']} {config.get('paths', ['README.md', 'docs/'])}")
+        return
     if args.clean:
         shutil.rmtree(GENERATED, ignore_errors=True)
         CONFIG.unlink(missing_ok=True)
     shutil.copytree(ROOT / "docs", GENERATED, dirs_exist_ok=True)
-    data = yaml.safe_load(MANIFEST.read_text())
-    repositories = data.get("repositories", {})
     if not args.no_sources:
+        provenance = ["# Documentation sources", "",
+                      "These are build-time Git snapshots, not proof of the live infrastructure state.",
+                      "Each document remains owned by its source repository.", "",
+                      "| Source | Commit | Imported pages |", "|---|---|---:|"]
         for name, config in repositories.items():
             source = checkout(name, config["repo"], args.local_repos_dir)
+            revision = subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD"], text=True).strip()
             target = GENERATED / "repositories" / name
-            for path in config["paths"]:
-                copy_path(source, target, path)
-            rewrite_source_links(target, source, config["repo"])
+            auto_paths = "paths" not in config
+            selected = config.get("paths", ["README.md", "docs/"])
+            included = set()
+            for relative in selected:
+                included.update(copy_path(source, target, relative, optional=auto_paths))
+            count = sum(p.suffix.lower() in (".md", ".markdown") for p in included)
+            if not count:
+                raise ValueError(f"no Markdown imported for {name}: check source paths")
+            rewrite_source_links(target, source, config["repo"], revision)
+            provenance.append(f"| [{name}](../repositories/{quote(name)}/) | `{revision}` | {count} |")
+            print(f"IMPORT {name}: {count} pages from {revision[:12]}")
+        (GENERATED / "sources").mkdir(parents=True, exist_ok=True)
+        (GENERATED / "sources/index.md").write_text("\n".join(provenance) + "\n", encoding="utf-8")
     write_config()
     mode = "safe committed" if args.no_sources else "full private"
-    print(f"Prepared {mode} documentation for {len(repositories)} declared repositories in {GENERATED}")
+    print(f"Prepared {mode} documentation for {len(repositories)} enrolled repositories")
 
 if __name__ == "__main__":
     main()
