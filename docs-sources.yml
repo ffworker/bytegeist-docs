@@ -1,39 +1,31 @@
+# Private site source allowlist; each enrolled repository owns its own docs.
+# Default import: README.md and docs/ if present. Missing docs/ is fine.
+# New source = one repo entry. Optional 'paths' overrides the defaults strictly.
+# This public manifest names sources but NEVER includes private contents.
 repositories:
   Signaturee:
     repo: ffworker/Signaturee
-    paths:
-      - README.md
-      - docs/
+  signaturee-win:
+    repo: ffworker/signaturee-win
+  signaturee-linux:
+    repo: ffworker/signaturee-linux
   my-digital-cv:
     repo: ffworker/my-digital-cv
-    paths:
-      - README.md
   coach-potato-app:
     repo: ffworker/coach-potato-app
-    paths:
-      - README.md
-      - docs/
   camdash-board:
     repo: ffworker/camdash-board
-    paths:
-      - README.md
   local-ragbot:
     repo: ffworker/local-ragbot
-    paths:
-      - README.md
-      - docs/
   infra-configs:
     repo: ffworker/infra-configs
-    paths:
-      - README.md
-      - docs/
   travel-router:
     repo: ffworker/travel-router
-    paths:
-      - README.md
-      - docs/
   cka-lab:
     repo: ffworker/cka-lab
-    paths:
-      - README.md
-      - docs/
+  anthias-hub:
+    repo: ffworker/anthias-hub
+  homelab-talos:
+    repo: ffworker/homelab-talos
+  documentation-systems-blueprint:
+    repo: ffworker/documentation-systems-blueprint
