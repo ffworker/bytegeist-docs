@@ -84,6 +84,17 @@ sein als die Remote-Repositories.
 
 ---
 
+## Bekannte Quellenlücke (02.11.2026)
+
+Der neue private Vollbuild konnte elf Quellen erfolgreich importieren, stoppte
+jedoch an `ffworker/homelab-talos`: Das bestehende `DOCS_REPO_TOKEN` kann
+dieses Repository nicht lesen (GitHub meldet `Could not resolve to a Repository`).
+Die Quelle bleibt deshalb vorerst **bewusst außerhalb der aktiven Liste**.
+Sie darf nach gezielter Leseberechtigung im GitHub Actions Secret
+`DOCS_REPO_TOKEN` wieder aufgenommen werden. Kein pauschaler Token, keine
+stillschweigende unvollständige Veröffentlichung. Das gleiche gilt für
+weitere private Repos: erst Token-Leserechte nachweisen, dann einschreiben.
+
 ## Ownership
 
 - Application technical docs: the owning application repository.

@@ -25,7 +25,5 @@ repositories:
     repo: ffworker/cka-lab
   anthias-hub:
     repo: ffworker/anthias-hub
-  homelab-talos:
-    repo: ffworker/homelab-talos
   documentation-systems-blueprint:
     repo: ffworker/documentation-systems-blueprint
