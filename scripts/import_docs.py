@@ -41,35 +41,71 @@ def checkout(name: str, repo: str, local_root: Path | None) -> Path:
         run("git", "clone", "--depth=1", f"https://github.com/{repo}.git", str(target))
     return target
 
-def copy_path(source: Path, target: Path, relative: str) -> None:
-    src = source / relative
+def copy_path(source: Path, target: Path, relative: str, *, optional: bool = False) -> set[Path]:
+    """Import Markdown and benign assets only, preserving source paths."""
+    rel = Path(relative.rstrip("/"))
+    if not relative or rel.is_absolute() or ".." in rel.parts or any(p.startswith(".") for p in rel.parts):
+        raise ValueError(f"unsafe documentation path: {relative!r}")
+    src = source / rel
+    if src.is_symlink():
+        raise ValueError(f"symlinked documentation root: {relative}")
     if not src.exists():
-        raise SystemExit(f"Declared documentation path does not exist: {source.name}/{relative}")
-    dst = target / relative.rstrip("/")
-    if src.is_dir():
-        shutil.copytree(src, dst, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".git", "__pycache__"))
-    else:
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, dst)
+        if optional:
+            return set()
+        raise FileNotFoundError(f"declared documentation path missing: {source.name}/{relative}")
+    allowed = {".md", ".markdown", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".pdf", ".txt"}
+    files = [src] if src.is_file() else sorted(src.rglob("*"))
+    included: set[Path] = set()
+    for file in files:
+        path = file.relative_to(source)
+        if any(p.startswith(".") or p == "__pycache__" for p in path.parts):
+            continue
+        if file.is_symlink():
+            raise ValueError(f"symlinked documentation file: {path}")
+        if not file.is_file() or file.suffix.lower() not in allowed:
+            continue
+        destination = target / path
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(file, destination)
+        included.add(path)
+    return included
 
-def rewrite_source_links(target: Path, source: Path, repo: str) -> None:
+
+def rewrite_source_links(target: Path, source: Path, repo: str, revision: str) -> None:
+    """Keep imported pages navigable; link missing files to immutable source SHA."""
+    import posixpath
+    from urllib.parse import unquote, urlsplit
     for page in target.rglob("*.md"):
-        source_page = source / page.relative_to(target)
-        text = page.read_text()
+        relative_page = page.relative_to(target)
+        text = page.read_text(encoding="utf-8")
         def replace(match: re.Match[str]) -> str:
             link = match.group(1)
-            if not link or link.startswith(("#", "/", "http:", "https:", "mailto:", "tel:")):
+            if not link or link.startswith(("#", "/", "//", "<")):
                 return match.group(0)
-            path, sep, anchor = link.partition("#")
-            resolved = (source_page.parent / path).resolve()
-            try:
-                relative = resolved.relative_to(source.resolve()).as_posix()
-            except ValueError:
+            parsed = urlsplit(link)
+            if parsed.scheme or parsed.netloc or not parsed.path:
                 return match.group(0)
-            kind = "tree" if resolved.is_dir() else "blob"
-            url = f"https://github.com/{repo}/{kind}/main/{quote(relative, safe='/._-')}"
-            return f"]({url}{sep + anchor if sep else ''})"
-        page.write_text(re.sub(r"\]\(([^)]+)\)", replace, text))
+            raw_path = unquote(parsed.path)
+            if "\\" in raw_path:
+                return match.group(0)
+            normalized = posixpath.normpath(posixpath.join(relative_page.parent.as_posix(), raw_path))
+            if normalized == ".." or normalized.startswith("../"):
+                return match.group(0)
+            relative = Path(normalized)
+            imported = next((p for p in (relative, relative / "README.md", relative / "index.md")
+                             if (target / p).is_file()), None)
+            if imported:
+                destination = posixpath.relpath(imported.as_posix(), relative_page.parent.as_posix())
+                url = quote(destination, safe="/._-")
+            else:
+                kind = "tree" if raw_path.endswith("/") else "blob"
+                url = f"https://github.com/{repo}/{kind}/{revision}/{quote(relative.as_posix(), safe='/._-')}"
+            if parsed.query:
+                url += "?" + parsed.query
+            if parsed.fragment:
+                url += "#" + parsed.fragment
+            return "](" + url + ")"
+        page.write_text(re.sub(r"\]\(([^)\s]+)\)", replace, text), encoding="utf-8")
 
 def title(path: Path) -> str:
     return path.stem.replace("_", " ").replace("-", " ").title()
