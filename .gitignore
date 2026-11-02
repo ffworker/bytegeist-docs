@@ -7,3 +7,7 @@ site-private/
 .venv/
 __pycache__/
 *.pyc
+
+# Zensical v2 private catalog / generated content
+v2/sources.private.yml
+v2/.generated/
