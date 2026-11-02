@@ -1,111 +1,19 @@
-name: Nightly private documentation CD
+name: Legacy VPS02 Docs CD — retired (no deployment)
 
+# Owner decision BYT-108: legacy VPS02 publisher no longer needed.
+# Safe manual notice only; no nightly schedule, credentials, SSH or NetBird.
 on:
-  schedule:
-    - cron: "45 23 * * *"
-      timezone: "Europe/Berlin"
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: bytegeist-docs-nightly
-  cancel-in-progress: false
-
-env:
-  DOCS_VPS02_HOST: ${{ vars.DOCS_VPS02_HOST }}
-
 jobs:
-  build:
-    name: Build latest private snapshot
+  retired:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-          cache: pip
-      - run: python -m pip install -r requirements.txt
-      - name: Require private source read credential
-        env:
-          GH_TOKEN: ${{ secrets.DOCS_REPO_TOKEN }}
-        run: test -n "$GH_TOKEN"
-      - name: Retrieve latest default branches and build privately
-        env:
-          GH_TOKEN: ${{ secrets.DOCS_REPO_TOKEN }}
+      - name: Explain retirement
         run: |
-          python scripts/import_docs.py --clean
-          mkdocs build --strict -f .generated-mkdocs.yml -d site
-          printf 'run_id=%s\ncommit=%s\n' "$GITHUB_RUN_ID" "$GITHUB_SHA" > site/.bytegeist-build
-      - name: Assert generated output is not tracked or uploaded
-        run: test -z "$(git ls-files .generated-docs .generated-mkdocs.yml site)"
-      - name: Archive site only in the runner workspace
-        run: tar -C "$GITHUB_WORKSPACE" -czf "$RUNNER_TEMP/bytegeist-docs-site.tgz" site
-      - name: Connect runner to the existing private NetBird network
-        uses: Alemiz112/netbird-connect@8aa36452fc8229f9d98b0f22f2ac7bfa90d2552b
-        with:
-          setup-key: ${{ secrets.DOCS_NETBIRD_SETUP_KEY }}
-          hostname: github-docs-${{ github.run_id }}
-          management-url: https://access.bytegeist.dev:443
-      - name: Wait for VPS02 TCP/22 readiness
-        run: |
-          sudo netbird status --json | jq '{daemonVersion, fqdn, netbirdIp, management: {url: .management.url, connected: .management.connected}, signal: {connected: .signal.connected}}'
-          reachable=false
-          for attempt in $(seq 1 12); do
-            if timeout 5 bash -c "</dev/tcp/${DOCS_VPS02_HOST}/22" 2>/dev/null; then
-              echo "VPS02 TCP/22 reachable on attempt $attempt"
-              reachable=true
-              break
-            fi
-            echo "VPS02 TCP/22 not reachable on attempt $attempt/12"
-            sleep 5
-          done
-          if [ "$reachable" != true ]; then
-            echo 'VPS02 TCP/22 did not become reachable after 60 seconds.' >&2
-            exit 1
-          fi
-      - name: Install pinned VPS02 host key and deployment key
-        env:
-          DEPLOY_KEY: ${{ secrets.DOCS_VPS02_SSH_KEY }}
-        run: |
-          test -n "$DOCS_VPS02_HOST"
-          test -n "$DEPLOY_KEY"
-          install -d -m 700 "$HOME/.ssh"
-          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/bytegeist-docs-vps02"
-          chmod 600 "$HOME/.ssh/bytegeist-docs-vps02"
-          printf '%s ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGLh5liBzZQZvB6p+G2mC3XTycrcPTzFt/OBsixdTWSI\n' "$DOCS_VPS02_HOST" > "$HOME/.ssh/known_hosts"
-      - name: Copy and atomically activate the private site
-        run: |
-          key="$HOME/.ssh/bytegeist-docs-vps02"
-          scp -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes "$RUNNER_TEMP/bytegeist-docs-site.tgz" "docs-deploy@$DOCS_VPS02_HOST:/tmp/bytegeist-docs-site-$GITHUB_RUN_ID.tgz"
-          ssh -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes "docs-deploy@$DOCS_VPS02_HOST" "RUN_ID='$GITHUB_RUN_ID' bash -s" <<'REMOTE'
-          set -euo pipefail
-          archive="/tmp/bytegeist-docs-site-${RUN_ID}.tgz"
-          staging="/tmp/bytegeist-docs-site-${RUN_ID}"
-          rm -rf "$staging"
-          mkdir "$staging"
-          tar -xzf "$archive" -C "$staging"
-          test -f "$staging/site/index.html"
-          test -f "$staging/site/.bytegeist-build"
-          if [ -d /opt/bytegeist-docs/site ]; then
-            mv -T /opt/bytegeist-docs/site "/opt/bytegeist-docs/site.previous-${RUN_ID}"
-          fi
-          mv -T "$staging/site" /opt/bytegeist-docs/site
-          rm -rf "/opt/bytegeist-docs/site.previous-${RUN_ID}" "$staging" "$archive"
-          REMOTE
-      - name: Verify private endpoint serves this deployment
-        run: |
-          key="$HOME/.ssh/bytegeist-docs-vps02"
-          ssh -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes "docs-deploy@$DOCS_VPS02_HOST" "RUN_ID='$GITHUB_RUN_ID' bash -s" <<'REMOTE'
-          set -euo pipefail
-          expected="run_id=${RUN_ID}"
-          for attempt in 1 2 3 4 5; do
-            if curl --connect-timeout 5 --max-time 15 --fail --silent --show-error --resolve docs.lab.bytegeist.info:443:127.0.0.1 "https://docs.lab.bytegeist.info/.bytegeist-build" | grep -Fqx "$expected"; then
-              exit 0
-            fi
-            sleep 5
-          done
-          echo "private endpoint did not serve $expected through local Traefik/SNI" >&2
-          exit 1
-          REMOTE
+          echo 'The former Bytegeist Docs v1 publisher is retired.'
+          echo 'This workflow does not deploy or contact VPS02.'
+          echo 'The clean Zensical v2 prototype lives under v2/.'
