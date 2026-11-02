@@ -1,0 +1,11 @@
+:8080 {
+    root * /srv
+    encode zstd gzip
+    file_server
+    header {
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "no-referrer"
+        X-Robots-Tag "noindex, nofollow, noarchive"
+        Cache-Control "private, no-store"
+    }
+}
