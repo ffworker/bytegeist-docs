@@ -1,56 +1,19 @@
-name: Documentation CI
+name: Legacy MkDocs v1 source validation — retired
 
+# Superseded by the Zensical v2 opt-in source collector and v2-preview.yml.
+# The previous full build cloned 12 sources via DOCS_REPO_TOKEN on every push.
+# There is intentionally no automatic private repo access here anymore.
 on:
-  pull_request:
-  push:
-    branches: [main]
-  repository_dispatch:
-    types: [docs-source-updated]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  committed-docs:
-    name: Public repository strict build
-    if: github.event_name == 'pull_request' || github.event_name == 'push'
+  retired:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-          cache: pip
-      - run: python -m pip install -r requirements.txt
-      - run: python scripts/check_repository_safety.py
-      - run: python -c "import yaml; yaml.safe_load(open('docs-sources.yml'))"
-      - run: python -m py_compile scripts/*.py
-      - run: python -m unittest discover -s tests -v
-      - run: python scripts/import_docs.py --list-sources
-      - run: python scripts/import_docs.py --clean --no-sources
-      - run: mkdocs build --strict -f .generated-mkdocs.yml -d site
-
-  trusted-full-docs:
-    name: Trusted full documentation validation
-    if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-          cache: pip
-      - run: python -m pip install -r requirements.txt
-      - name: Require private source read credential
-        env:
-          GH_TOKEN: ${{ secrets.DOCS_REPO_TOKEN }}
-        run: test -n "$GH_TOKEN"
-      - name: Retrieve latest sources and validate full build
-        env:
-          GH_TOKEN: ${{ secrets.DOCS_REPO_TOKEN }}
+      - name: Explain intentional retirement
         run: |
-          python scripts/import_docs.py --clean
-          mkdocs build --strict -f .generated-mkdocs.yml -d site
-      - name: Assert generated output is not tracked
-        run: test -z "$(git ls-files .generated-docs .generated-mkdocs.yml site)"
+          echo 'Legacy v1 full-source validation is retired.'
+          echo 'See Zensical v2 checks and explicit curated local sources.'

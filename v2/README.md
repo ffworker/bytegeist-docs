@@ -13,6 +13,9 @@
 
 ## Renderer decision: Zensical
 
+The v1 trusted full-import CI is also intentionally disabled as part of the rebuild. `v2-preview.yml` is the only active documentation validation, and it never has private source credentials. Private sources are opt-in for local runs; no automated private publisher has been reintroduced.
+
+
 **Zensical is the chosen engine for Bytegeist Docs v2.** The original site ran on MkDocs Material, which helped prove the source ownership and Markdown approach. Zensical comes from the same creators, supports existing `mkdocs.yml` projects, and provides its own **modern** theme variant. Its pre-1.0 compatibility needs to remain covered by tests.
 
 The existing `v2/mkdocs.yml` is intentionally kept as the Zensical configuration: Zensical officially supports it. We do not need a migration to TOML just to claim a clean start. The v1 importer, deploy jobs, VPS02 paths and permissions are not used by this preview.
