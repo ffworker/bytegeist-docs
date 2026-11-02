@@ -20,18 +20,25 @@ def run(*args: str) -> None:
     subprocess.run(args, cwd=ROOT, check=True)
 
 def checkout(name: str, repo: str, local_root: Path | None) -> Path:
+    """Get a fresh source snapshot. Never modify user checkouts."""
     if local_root:
         for candidate in (local_root / name, local_root / repo.rsplit("/", 1)[-1]):
             if (candidate / ".git").exists():
                 return candidate
+        raise FileNotFoundError(f"local checkout missing: {name}")
     target = CACHE / name
-    if not (target / ".git").exists():
-        CACHE.mkdir(parents=True, exist_ok=True)
-        token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
-        if token and shutil.which("gh"):
-            run("gh", "repo", "clone", repo, str(target), "--", "--depth=1")
-        else:
-            run("git", "clone", "--depth=1", f"https://github.com/{repo}.git", str(target))
+    CACHE.mkdir(parents=True, exist_ok=True)
+    if target.is_symlink():
+        raise ValueError(f"refusing symlinked cache directory: {name}")
+    # Managed cache only: a fresh shallow clone follows the current default
+    # branch, preventing old documents and renamed default branches from lingering.
+    if target.exists():
+        shutil.rmtree(target)
+    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    if token and shutil.which("gh"):
+        run("gh", "repo", "clone", repo, str(target), "--", "--depth=1")
+    else:
+        run("git", "clone", "--depth=1", f"https://github.com/{repo}.git", str(target))
     return target
 
 def copy_path(source: Path, target: Path, relative: str) -> None:
