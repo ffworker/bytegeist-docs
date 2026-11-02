@@ -55,7 +55,7 @@ def checkout(item, local_root, cache):
         raise ValueError("symlinked checkout target")
     if target.exists():
         shutil.rmtree(target)
-    if (os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")) and shutil.which("gh"):
+    if shutil.which("gh"):
         cmd = ["gh", "repo", "clone", repo, str(target), "--", "--depth=1"]
     else:
         cmd = ["git", "clone", "--depth=1", "https://github.com/" + repo + ".git", str(target)]
@@ -71,6 +71,9 @@ def copy_docs(source, dest, paths):
             raise ValueError("declared README/docs path missing or symlinked")
         for file in ([start] if start.is_file() else sorted(start.rglob("*"))):
             rel = file.relative_to(source)
+            # Archived and evidence trees are never presented as current docs.
+            if any(part in {"_archive", "evidence"} for part in rel.parts):
+                continue
             if file.is_symlink():
                 raise ValueError("symlink in selected documentation")
             if any(x.startswith(".") for x in rel.parts) or not file.is_file() or file.suffix.lower() not in SAFE:
