@@ -140,6 +140,70 @@ def write_config() -> None:
     }
     CONFIG.write_text(yaml.safe_dump(config, sort_keys=False))
 
+def make_repository_directory(catalog_path: Path, enrolled: dict[str, dict]) -> str:
+    """Build a private reader-facing index from the private infra-configs inventory.
+
+    This public repository must never contain the private catalog contents.
+    The import allowlist is independent: other repositories are only linked.
+    """
+    if not catalog_path.is_file():
+        raise FileNotFoundError(f"private repository catalog unavailable: {catalog_path}")
+    data = yaml.safe_load(catalog_path.read_text(encoding="utf-8"))
+    entries = data.get("repositories") if isinstance(data, dict) else None
+    if not isinstance(entries, list) or not entries:
+        raise ValueError("private repository catalog must contain a nonempty repositories list")
+    imported = {cfg["repo"]: alias for alias, cfg in enrolled.items()}
+    seen: set[str] = set()
+    lines = [
+        "# Alle Repositories", "",
+        "Dieses **private Verzeichnis** zeigt die zuletzt inventarisierten GitHub-Repositories. "
+        "Die technischen Inhalte bleiben in den jeweiligen Quell-Repositories.", "",
+        "**Im Portal:** README und ausgewählte docs-Seiten wurden beim letzten erfolgreichen "
+        "Build importiert. **GitHub:** nur ein Link zur Originalquelle; private Repositories "
+        "erfordern zusätzlich eigene GitHub-Berechtigung.", "",
+        "| Repository | README | docs/ | Zugriff |",
+        "| --- | --- | --- | --- |",
+    ]
+    for entry in sorted(entries, key=lambda e: str(e.get("repo", "")).casefold() if isinstance(e, dict) else ""):
+        if not isinstance(entry, dict):
+            raise ValueError("invalid repository catalog entry")
+        repo, branch, readme = entry.get("repo"), entry.get("branch"), entry.get("readme")
+        has_docs, archived = entry.get("docs"), entry.get("archived")
+        if not isinstance(repo, str) or not re.fullmatch(r"ffworker/[A-Za-z0-9][A-Za-z0-9_.-]*", repo):
+            raise ValueError("invalid private catalog repository")
+        if not isinstance(branch, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", branch):
+            raise ValueError(f"invalid default branch for {repo}")
+        if readme is not None and (not isinstance(readme, str) or not re.fullmatch(r"(?i)readme(?:\.md|\.markdown)?", readme)):
+            raise ValueError(f"invalid root README path for {repo}")
+        if type(has_docs) is not bool or type(archived) is not bool or repo in seen:
+            raise ValueError(f"invalid or duplicate catalog record: {repo}")
+        seen.add(repo)
+        root = f"https://github.com/{repo}"
+        name = repo.rsplit("/", 1)[1]
+        label = f"[{name}]({root})" + (" (archiviert)" if archived else "")
+        if readme:
+            url = (f"{quote(imported[repo], safe='')}/{quote(readme, safe='')}"
+                   if repo in imported else f"{root}/blob/{branch}/{quote(readme, safe='')}")
+            readme_link = f"[README]({url})"
+        else:
+            readme_link = "—"
+        docs_link = f"[docs/]({root}/tree/{branch}/docs)" if has_docs else "—"
+        status = "Im Portal" if repo in imported else "Nur GitHub"
+        if not readme and not has_docs:
+            status = "Noch keine README/docs"
+        lines.append(f"| {label} | {readme_link} | {docs_link} | {status} |")
+    if set(imported) - seen:
+        raise ValueError("source manifest absent from private repository catalog")
+    lines.extend([
+        "", f"**Inventar:** {len(seen)} Repositories. "
+        "Diese Liste ist eine datierte Bestandsaufnahme, keine automatische Synchronisation.",
+        "", "Neue Repositories zunächst im privaten Inventar von infra-configs ergänzen. "
+        "Eine weitere Quell-Importfreigabe ist davon getrennt.",
+        "", "Git-Commit bedeutet nicht aktuelle Dienstgesundheit oder getesteten Restore.", "",
+    ])
+    return "\n".join(lines)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--local-repos-dir", type=Path)
@@ -168,12 +232,15 @@ def main() -> None:
         CONFIG.unlink(missing_ok=True)
     shutil.copytree(ROOT / "docs", GENERATED, dirs_exist_ok=True)
     if not args.no_sources:
+        private_catalog_path = None
         provenance = ["# Documentation sources", "",
                       "These are build-time Git snapshots, not proof of the live infrastructure state.",
                       "Each document remains owned by its source repository.", "",
                       "| Source | Commit | Imported pages |", "|---|---|---:|"]
         for name, config in repositories.items():
             source = checkout(name, config["repo"], args.local_repos_dir)
+            if config["repo"] == "ffworker/infra-configs":
+                private_catalog_path = source / "docs/bytegeist-docs-repository-catalog.yml"
             revision = subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD"], text=True).strip()
             target = GENERATED / "repositories" / name
             auto_paths = "paths" not in config
@@ -189,6 +256,10 @@ def main() -> None:
             print(f"IMPORT {name}: {count} pages from {revision[:12]}")
         (GENERATED / "sources").mkdir(parents=True, exist_ok=True)
         (GENERATED / "sources/index.md").write_text("\n".join(provenance) + "\n", encoding="utf-8")
+        if private_catalog_path is None:
+            raise ValueError("private infra-configs source is needed for repository directory")
+        (GENERATED / "repositories/index.md").write_text(
+            make_repository_directory(private_catalog_path, repositories), encoding="utf-8")
     write_config()
     mode = "safe committed" if args.no_sources else "full private"
     print(f"Prepared {mode} documentation for {len(repositories)} enrolled repositories")

@@ -72,6 +72,55 @@ class SourcesTest(unittest.TestCase):
             finally:
                 docs.CACHE = old_cache
 
+    def test_private_catalog_has_local_and_external_links(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            catalog = Path(tmp) / "catalog.yml"
+            catalog.write_text("""repositories:
+  - repo: ffworker/alpha
+    branch: main
+    readme: README.md
+    docs: true
+    archived: false
+  - repo: ffworker/beta
+    branch: master
+    readme: readme.md
+    docs: false
+    archived: true
+  - repo: ffworker/empty
+    branch: main
+    readme: null
+    docs: false
+    archived: false
+""")
+            page = docs.make_repository_directory(
+                catalog, {"alpha": {"repo": "ffworker/alpha"}}
+            )
+            self.assertIn("[README](alpha/README.md)", page)
+            self.assertIn("[README](https://github.com/ffworker/beta/blob/master/readme.md)", page)
+            self.assertIn("[docs/](https://github.com/ffworker/alpha/tree/main/docs)", page)
+            self.assertIn("(archiviert)", page)
+            self.assertIn("Noch keine README/docs", page)
+
+    def test_private_catalog_missing_duplicate_or_wrong_manifest_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            catalog = Path(tmp) / "catalog.yml"
+            with self.assertRaises(FileNotFoundError):
+                docs.make_repository_directory(catalog, {})
+            item = """  - repo: ffworker/alpha
+    branch: main
+    readme: README.md
+    docs: false
+    archived: false
+"""
+            catalog.write_text("repositories:\n" + item)
+            with self.assertRaisesRegex(ValueError, "source manifest absent"):
+                docs.make_repository_directory(
+                    catalog, {"unknown": {"repo": "ffworker/unknown"}}
+                )
+            catalog.write_text("repositories:\n" + item + item)
+            with self.assertRaisesRegex(ValueError, "duplicate"):
+                docs.make_repository_directory(catalog, {})
+
     def test_manifest_contains_new_public_sources(self):
         manifest = docs.MANIFEST.read_text()
         for name in ("signaturee-win", "signaturee-linux", "cka-lab", "anthias-hub"):
