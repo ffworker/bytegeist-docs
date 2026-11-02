@@ -22,18 +22,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - run: python -m pip install 'mkdocs-material>=9.6,<10' zensical
-      - name: Verify MkDocs Material preview (no private inputs)
+      - run: python -m pip install zensical
+      - name: Verify chosen Zensical modern preview (no private inputs)
         run: |
           cd v2
-          mkdocs build --strict
+          zensical build --strict --clean
           test -f site/index.html
-          test -f site/styles/bytegeist.css
-      - name: Verify Zensical preview with same mkdocs.yml (no deployment)
-        run: |
-          cd v2
-          zensical build
-          test -f site/index.html
+          test -f site/quellen/index.html
+          test -f site/pruefung/index.html
           test -f site/styles/bytegeist.css
       - name: Confirm no network deployment or private inventory
         run: |
