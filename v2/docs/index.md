@@ -1,6 +1,6 @@
 # Weniger Quellen. Mehr Orientierung.
 
-<div class="bg-eyebrow">BYTEGEIST / PRIVATE TECHNICAL NOTES / V2 PREVIEW</div>
+<div class="bg-eyebrow">BYTEGEIST / PRIVATE TECHNICAL NOTES</div>
 
 <div class="bg-lead">
 Die Dokumentation soll mir beim nächsten Problem **Zeit sparen** — nicht neue Arbeit machen.
@@ -19,15 +19,15 @@ Die Dokumentation soll mir beim nächsten Problem **Zeit sparen** — nicht neue
   </a>
 </div>
 
-## Das hier ist noch kein produktives Handbuch
+## Dein privater Lesekatalog
 
-Diese Seite ist ein **isolierter Design-Prototyp**, ohne echte Homelab-Daten oder Zugriffe. Der aktuelle Fokus ist die einfache Benutzerführung: Starten, suchen, Quelle finden, aktualitätsbezogene Unsicherheit erkennen.
+Diese Seite wird aus bewusst ausgewählten Quellen erzeugt. Ohne private Quellenauswahl zeigt sie nur die neutrale Vorschau. **Quellstand** dokumentiert den letzten Abruf und den Git-Commit; das bestätigt keinen Live-Zustand von Hosts und Anwendungen.
 
 !!! note "Keine zweite Quelle der Wahrheit"
     Änderungen gehören in das jeweilige Quell-Repository. Die persönliche Dokumentationsseite ist nur die ausgewählte, private Leseansicht.
 
-## Was ich später hier sehen möchte
+## Was hier hineingehört
 
-Eine kleine Liste meiner **wirklich wichtigen** Projekte und Betriebssysteme — beispielsweise Netzwerk, Storage, Virtualisierung, Kubernetes und aktive Werkzeuge. Nicht alles, was ich irgendwann ausprobiert habe.
+Die wichtigen Betriebs- und Projektdokumentationen, nicht ein ungeprüfter Spiegel aller Experimente. Bei fehlenden oder veralteten Informationen wird die kanonische Quelle korrigiert, nicht dieser generierte Katalog.
 
 Wenn ein Repository fehlt, wird es **nicht automatisch** aufgenommen. Wenn eine Betriebsanleitung seit Monaten ungeprüft ist, wird das sichtbar und nicht als aktuell verkauft.
