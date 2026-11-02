@@ -1,0 +1,45 @@
+site_name: Bytegeist Docs
+site_description: Private technical knowledge, deliberately curated
+site_url: ""
+docs_dir: docs
+site_dir: site
+use_directory_urls: true
+theme:
+  name: material
+  language: de
+  font: false
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Dunkel
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Hell
+plugins:
+  - search
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - pymdownx.details
+  - pymdownx.superfences
+extra_css:
+  - styles/bytegeist.css
+nav:
+  - Start: index.md
+  - Quellen auswählen: quellen.md
+  - Vertrauenswürdigkeit: pruefung.md
