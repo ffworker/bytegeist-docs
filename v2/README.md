@@ -11,29 +11,30 @@
 - Markdown, a reading-friendly interface, and a regenerable static site remain the whole product.
 - Existing `scripts/import_docs.py`, v1 CI, VPS02 pipeline, NetBird, servers and blog are untouched.
 
-## Local preview
+## Renderer decision: Zensical
 
-Use a Python virtual environment (no Docker required):
+**Zensical is the chosen engine for Bytegeist Docs v2.** The original site ran on MkDocs Material, which helped prove the source ownership and Markdown approach. Zensical comes from the same creators, supports existing `mkdocs.yml` projects, and provides its own **modern** theme variant. Its pre-1.0 compatibility needs to remain covered by tests.
 
-```sh
-python -m pip install "mkdocs-material>=9.6,<10"
-cd v2
-mkdocs serve
-```
+The existing `v2/mkdocs.yml` is intentionally kept as the Zensical configuration: Zensical officially supports it. We do not need a migration to TOML just to claim a clean start. The v1 importer, deploy jobs, VPS02 paths and permissions are not used by this preview.
 
-Open http://127.0.0.1:8000/ . The preview contains only synthetic content.
-
-## Side-by-side engine comparison
-
-Try [Zensical](https://zensical.org/docs/compatibility/mkdocs/migration/) using the same `mkdocs.yml`:
+## Local preview: Zensical
 
 ```sh
+python -m venv .venv
+. .venv/bin/activate
 python -m pip install zensical
 cd v2
-zensical build
+zensical build --strict
+zensical serve
 ```
 
-The optional GitHub Actions preview check builds both engines **without using private repo credentials or publishing site artifacts**. Compare search, navigation, typography, responsive layout and offline behavior before choosing a generator.
+Open http://127.0.0.1:8000/ . The prototype contains **only synthetic example pages**.
+
+The new v2 CI runs a clean strict Zensical build **without private credentials** and checks that the custom Bytegeist styles and pages are present. The previously verified Material renderer is just historical comparison evidence, not a second runtime we will continue to maintain.
+
+## Real content remains deliberately unselected
+
+The private, operator-reviewed 29-repository inventory and proposed `KEEP / REVIEW / EXCLUDE` decisions are tracked separately under [BYT-108](https://linear.app/bytegeist/issue/BYT-108). Nothing from that list is loaded here until the operator approves a subset. This is intentional: more scraped content was the mistake that made v1 less useful.
 
 ## What this intentionally does not do
 
