@@ -1,22 +1,7 @@
-# Repository Portfolio
+# Alle GitHub-Repositories
 
-The canonical technical documentation remains in each source repository. This
-repository demonstrates the aggregation workflow without committing imported
-source contents.
+Im **privaten Vollbuild** ersetzt der Importer diese öffentliche Platzhalterseite durch den vollständigen Katalog aus der privaten Inventardatei in infra-configs. Die private Seite enthält die überprüften README-/docs-Links sowie Kennzeichnungen für bereits in das Portal importierte Quellen.
 
-## Active engineering
+Warum getrennt? Dieses öffentliche Orchestrierungs-Repository soll keine zusätzliche Liste privater GitHub-Repositories offenlegen. Die eigentlichen Dokumente bleiben bei ihren Eigentümern. Ohne freigegebenen Katalog scheitert der private Vollbuild bewusst, statt die Liste fälschlich als vollständig darzustellen.
 
-- Signaturee
-- mywebsite
-- coach-potato-app
-- camdash-board
-- local-ragbot
-
-## Infrastructure and learning
-
-- infra-configs
-- homelab-talos
-- cka-lab (learning only)
-
-The source names and documentation paths are metadata. The imported contents
-are retrieved only in trusted workflows and are never committed here.
+Der Katalog ist eine Bestandsaufnahme und keine automatische Synchronisation aller zukünftigen Repositories. Quellimporte und neue Lesezugriffe benötigen separate Freigaben.
