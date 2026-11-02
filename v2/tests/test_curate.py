@@ -64,6 +64,19 @@ class SourceTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 curate.copy_docs(base, base / "output", ["docs/"])
 
+    def test_archive_and_evidence_trees_never_enter_current_site(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            (base / "docs" / "_archive").mkdir(parents=True)
+            (base / "docs" / "evidence").mkdir(parents=True)
+            (base / "docs" / "current.md").write_text("# Current\n")
+            (base / "docs" / "_archive" / "retired.md").write_text("# Old\n")
+            (base / "docs" / "evidence" / "raw.md").write_text("# Evidence\n")
+            paths = curate.copy_docs(base, base / "out", ["docs/"])
+            self.assertEqual([p.as_posix() for p in paths], ["docs/current.md"])
+            self.assertFalse((base / "out/docs/_archive/retired.md").exists())
+            self.assertFalse((base / "out/docs/evidence/raw.md").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
