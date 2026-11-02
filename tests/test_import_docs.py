@@ -74,7 +74,7 @@ class SourcesTest(unittest.TestCase):
 
     def test_manifest_contains_new_public_sources(self):
         manifest = docs.MANIFEST.read_text()
-        for name in ("signaturee-win", "signaturee-linux", "cka-lab", "homelab-talos"):
+        for name in ("signaturee-win", "signaturee-linux", "cka-lab", "anthias-hub"):
             self.assertIn("repo: ffworker/" + name, manifest)
 
 
