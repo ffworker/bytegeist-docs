@@ -13,6 +13,9 @@
 
 ## Renderer decision: Zensical
 
+The v2 build toolchain is **deliberately pinned to the successful 2026-11-02 CI versions** in `v2/requirements.txt`; upgrades are reviewable changes, not implicit changes on the next pip install. Zensical 0.0.74 and PyYAML 6.0.3 are the tested baseline; the expected 0.1 release can be evaluated separately.
+
+
 The v1 trusted full-import CI is also intentionally disabled as part of the rebuild. `v2-preview.yml` is the only active documentation validation, and it never has private source credentials. Private sources are opt-in for local runs; no automated private publisher has been reintroduced.
 
 
@@ -25,7 +28,7 @@ The existing `v2/mkdocs.yml` is intentionally kept as the Zensical configuration
 ```sh
 python -m venv .venv
 . .venv/bin/activate
-python -m pip install zensical
+python -m pip install -r requirements.txt
 cd v2
 zensical build --strict
 zensical serve
@@ -45,7 +48,7 @@ From the repository root, after installing Zensical and PyYAML:
 cp v2/sources.example.yml v2/sources.private.yml
 # Edit sources.private.yml with only the repositories you approve.
 cd v2
-python -m pip install PyYAML zensical
+python -m pip install -r requirements.txt
 python scripts/curate.py --manifest sources.private.yml
 zensical build --strict -f .generated/mkdocs.yml
 zensical serve -f .generated/mkdocs.yml
