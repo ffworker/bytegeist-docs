@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - run: python -m pip install zensical PyYAML
+      - run: python -m pip install -r v2/requirements.txt
       - name: Verify chosen Zensical modern preview (no private inputs)
         run: |
           cd v2
