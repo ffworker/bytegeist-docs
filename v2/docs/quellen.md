@@ -4,6 +4,9 @@
 
 **Manuell ausgewählt. Klar nachvollziehbar. Jederzeit entfernbar.**
 
+Die technische Vorbereitung steht: `v2/scripts/curate.py` liest ausschließlich eine ausdrücklich angegebene, private `sources.private.yml`. Ohne Auswahl gibt es keine echten Imports. Das Repo-Review und die Freigaben bleiben getrennt.
+
+
 Die private Quelleauswahl entsteht erst nach der Entscheidung des Betreibers. Es gibt **keine** automatische Konto-weite Repo-Erkennung. Neue Projekte bleiben draußen, bis sie bewusst ausgewählt wurden.
 
 | Beispiel-Eintrag | Zweck | Entscheidung |

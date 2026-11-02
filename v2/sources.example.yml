@@ -1,0 +1,3 @@
+# Copy to sources.private.yml and select repositories explicitly.
+# This example has ZERO actual sources; it cannot access GitHub by itself.
+sources: []

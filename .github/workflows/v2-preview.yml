@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - run: python -m pip install zensical
+      - run: python -m pip install zensical PyYAML
       - name: Verify chosen Zensical modern preview (no private inputs)
         run: |
           cd v2
@@ -31,6 +31,20 @@ jobs:
           test -f site/quellen/index.html
           test -f site/pruefung/index.html
           test -f site/styles/bytegeist.css
+      - name: Test explicit source selection with no network or real sources
+        run: |
+          python -m unittest discover -s v2/tests -v
+          cd v2
+          python scripts/curate.py
+          zensical build --strict --clean -f .generated/mkdocs.yml
+          test -f .generated/site/index.html
+          test -f .generated/site/quellstand/index.html
+      - name: Ensure private source manifests are never tracked
+        run: |
+          if test -n "$(git ls-files v2/sources.private.yml v2/.generated)"; then
+            echo "private v2 source selection or generated site committed" >&2
+            exit 1
+          fi
       - name: Confirm no network deployment or private inventory
         run: |
           ! grep -R -E 'DOCS_REPO_TOKEN|DOCS_NETBIRD_SETUP_KEY|/opt/bytegeist-docs|ffworker/homelab-talos' v2/
