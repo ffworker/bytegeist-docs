@@ -184,7 +184,7 @@ def main() -> None:
             if not count:
                 raise ValueError(f"no Markdown imported for {name}: check source paths")
             rewrite_source_links(target, source, config["repo"], revision)
-            provenance.append(f"| [{name}](../repositories/{quote(name)}/) | `{revision}` | {count} |")
+            provenance.append(f"| [{name}](../repositories/{quote(name)}/README.md) | `{revision}` | {count} |")
             print(f"IMPORT {name}: {count} pages from {revision[:12]}")
         (GENERATED / "sources").mkdir(parents=True, exist_ok=True)
         (GENERATED / "sources/index.md").write_text("\n".join(provenance) + "\n", encoding="utf-8")
