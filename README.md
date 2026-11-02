@@ -1,5 +1,8 @@
 # Bytegeist Docs
 
+> **Neuaufbau (02.11.2026):** Bytegeist Docs v2 wird bewusst **neu mit Zensical** aufgebaut, mit wenigen vom Betreiber ausgewählten Quellen statt einer Vollsammlung. Diese README dokumentiert vor allem die **historische v1-Implementierung**. Der neue [lokale Zensical-Prototyp](v2/README.md) ist noch kein produktiv erreichbares System. Eine Stilllegung von VPS02-Diensten erfolgt erst nach getrennter Betriebsprüfung. [BYT-108](https://linear.app/bytegeist/issue/BYT-108).
+
+
 [![Documentation CI](https://github.com/ffworker/bytegeist-docs/actions/workflows/ci.yml/badge.svg)](https://github.com/ffworker/bytegeist-docs/actions/workflows/ci.yml)
 [![Nightly private documentation CD](https://github.com/ffworker/bytegeist-docs/actions/workflows/nightly.yml/badge.svg)](https://github.com/ffworker/bytegeist-docs/actions/workflows/nightly.yml)
 
