@@ -75,24 +75,60 @@ jobs:
           printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/bytegeist-docs-vps02"
           chmod 600 "$HOME/.ssh/bytegeist-docs-vps02"
           printf '%s ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGLh5liBzZQZvB6p+G2mC3XTycrcPTzFt/OBsixdTWSI\n' "$DOCS_VPS02_HOST" > "$HOME/.ssh/known_hosts"
-      - name: Copy and atomically activate the private site
+      - name: Preflight VPS02 deploy directory permissions (read-only)
+        run: |
+          key="$HOME/.ssh/bytegeist-docs-vps02"
+          ssh -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes "docs-deploy@$DOCS_VPS02_HOST" 'bash -se' <<'REMOTE'
+          set -euo pipefail
+          root=/opt/bytegeist-docs
+          site="$root/site"
+          if [ ! -d "$root" ] || [ -L "$root" ] || [ ! -w "$root" ] || [ ! -x "$root" ]; then
+            echo "DEPLOY_PERMISSION_ERROR: docs-deploy needs write/execute on $root to rename site/; do not chmod 777 or run CI as root." >&2
+            exit 1
+          fi
+          if [ -e "$site" ]; then
+            if [ ! -d "$site" ] || [ -L "$site" ]; then
+              echo "DEPLOY_PERMISSION_ERROR: site must be a real directory, not a symlink/mount substitute." >&2
+              exit 1
+            fi
+            unwriteable="$(find "$site" -type d ! -writable -print -quit)"
+            if [ -n "$unwriteable" ]; then
+              echo "DEPLOY_PERMISSION_ERROR: docs-deploy cannot clean up old site directory $unwriteable." >&2
+              exit 1
+            fi
+          fi
+          REMOTE
+      - name: Copy and activate the private site with rollback
         run: |
           key="$HOME/.ssh/bytegeist-docs-vps02"
           scp -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes "$RUNNER_TEMP/bytegeist-docs-site.tgz" "docs-deploy@$DOCS_VPS02_HOST:/tmp/bytegeist-docs-site-$GITHUB_RUN_ID.tgz"
           ssh -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes "docs-deploy@$DOCS_VPS02_HOST" "RUN_ID='$GITHUB_RUN_ID' bash -s" <<'REMOTE'
           set -euo pipefail
+          root=/opt/bytegeist-docs
           archive="/tmp/bytegeist-docs-site-${RUN_ID}.tgz"
-          staging="/tmp/bytegeist-docs-site-${RUN_ID}"
-          rm -rf "$staging"
+          staging="$root/.staging-${RUN_ID}"
+          previous="$root/.previous-${RUN_ID}"
+          if [ -e "$staging" ] || [ -e "$previous" ]; then
+            echo "Stale deployment staging/rollback directory found for run ${RUN_ID}; manual review required." >&2
+            exit 1
+          fi
           mkdir "$staging"
           tar -xzf "$archive" -C "$staging"
           test -f "$staging/site/index.html"
           test -f "$staging/site/.bytegeist-build"
-          if [ -d /opt/bytegeist-docs/site ]; then
-            mv -T /opt/bytegeist-docs/site "/opt/bytegeist-docs/site.previous-${RUN_ID}"
+          if [ -d "$root/site" ]; then
+            mv -T "$root/site" "$previous"
           fi
-          mv -T "$staging/site" /opt/bytegeist-docs/site
-          rm -rf "/opt/bytegeist-docs/site.previous-${RUN_ID}" "$staging" "$archive"
+          if ! mv -T "$staging/site" "$root/site"; then
+            echo "Activation failed; attempting to restore previous site." >&2
+            if [ -d "$previous" ] && [ ! -e "$root/site" ]; then
+              if ! mv -T "$previous" "$root/site"; then
+                echo "CRITICAL: automatic rollback failed; site may be missing." >&2
+              fi
+            fi
+            exit 1
+          fi
+          rm -rf "$previous" "$staging" "$archive"
           REMOTE
       - name: Verify private endpoint serves this deployment
         run: |
