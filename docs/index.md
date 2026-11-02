@@ -4,6 +4,8 @@ Das ist meine **private Leseansicht** für ausgewählte Projekt- und Homelab-Dok
 
 ## Ich suche …
 
+**[Alle meine GitHub-Repositories](repositories/index.md)** — die private Vollversion zeigt eine geprüfte Liste mit README-/docs-Links. Noch nicht freigegebene Quellen führen direkt nach GitHub (gegebenenfalls mit eigener Anmeldung). Der Katalog ist nicht automatisch mit neuen Repositories synchronisiert.
+
 | Frage | Wo anfangen? |
 | --- | --- |
 | Wie ist mein Homelab aufgebaut? | **Repositories → infra-configs → README** (aktuelle Bestandsübersicht und Quellverweise) |
