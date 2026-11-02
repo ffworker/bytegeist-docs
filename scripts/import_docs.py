@@ -113,7 +113,7 @@ def title(path: Path) -> str:
 def navigation(root: Path, relative: Path = Path(".")) -> list[dict[str, object]]:
     items: list[dict[str, object]] = []
     directory = root / relative
-    for child in sorted(directory.iterdir(), key=lambda p: (p.is_file(), p.name.lower())):
+    for child in sorted(directory.iterdir(), key=lambda p: (p.name != "index.md" if relative == Path(".") else p.is_file(), p.name.lower())):
         if child.name.startswith("."):
             continue
         if child.is_dir():
@@ -121,7 +121,8 @@ def navigation(root: Path, relative: Path = Path(".")) -> list[dict[str, object]
             if nested:
                 items.append({title(child): nested})
         elif child.suffix == ".md":
-            items.append({title(child): (relative / child.name).as_posix().lstrip("./")})
+            label = "Start here" if relative == Path(".") and child.name == "index.md" else title(child)
+            items.append({label: (relative / child.name).as_posix().lstrip("./")})
     return items
 
 def write_config() -> None:
