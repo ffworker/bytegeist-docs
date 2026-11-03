@@ -1,28 +1,20 @@
-# Quellen auswählen
+# Projekte und Quellen
 
-<div class="bg-eyebrow">DOKUMENTATION / AUSWAHL</div>
+<div class="bg-eyebrow">INTERN / QUELLENVERWALTUNG</div>
 
-**Manuell ausgewählt. Klar nachvollziehbar. Jederzeit entfernbar.**
+Hier sammle ich die Dokumentation, die ich beim Betrieb meiner Systeme tatsächlich brauche. Die Projektnavigation entsteht aus meiner privaten Quellenauswahl, nicht aus einer automatischen Spiegelung des gesamten GitHub-Kontos.
 
-Die technische Vorbereitung steht: `v2/scripts/curate.py` liest ausschließlich eine ausdrücklich angegebene, private `sources.private.yml`. Ohne Auswahl gibt es keine echten Imports. Das Repo-Review und die Freigaben bleiben getrennt.
+## Quellen hinzufügen oder ändern
 
+1. In der lokalen, **nicht eingecheckten** Datei `v2/sources.private.yml` ein gewünschtes Repository auswählen.
+2. Für jedes Projekt `README.md`, `docs/` oder beides festlegen.
+3. Den Collector `v2/scripts/curate.py` ausführen und Zensical mit `.generated/mkdocs.yml` bauen.
+4. Suchfunktion, Links und Quellstand prüfen, danach erst die private statische Website aktualisieren.
 
-Die private Quelleauswahl entsteht erst nach der Entscheidung des Betreibers. Es gibt **keine** automatische Konto-weite Repo-Erkennung. Neue Projekte bleiben draußen, bis sie bewusst ausgewählt wurden.
+**Wichtig:** Ohne private Quellenauswahl enthält die Site nur die Grundseiten dieses Projekts. Es werden keine privaten Repositories automatisch abgerufen.
 
-| Beispiel-Eintrag | Zweck | Entscheidung |
-| --- | --- | --- |
-| Projektdokumentation A | README lesen | Noch offen |
-| Infrastrukturhandbuch B | README und docs/ | Noch offen |
-| Altes Experiment C | Historisch, nicht importieren | Noch offen |
+## Inhaltspflege
 
-*Diese drei Einträge sind ausdrücklich synthetische Platzhalter, keine realen Quellen.*
+Falsche oder veraltete Informationen im **ursprünglichen Repository** korrigieren. Eine gerenderte Kopie wird nicht zur zweiten Quelle der Wahrheit. Der Collector dokumentiert für die ausgewählten Quellen Git-SHA und Abrufzeit im generierten Quellstand.
 
-## Mein Importvertrag
-
-1. Ein Repository wird einzeln freigegeben und erhält einen Namen.
-2. Ich wähle `README.md`, `docs/` oder beides.
-3. Die Quelle braucht die passende Leseberechtigung. Es gibt keinen Zugriffstrick bei einem privaten Repo.
-4. Der Renderer zeigt Quell-Commit und Abrufzeit an; eine schlechte oder veraltete Anleitung wird dadurch nicht richtig.
-5. Entferne ich die Freigabe, erscheint die Quelle im nächsten privaten Build nicht mehr.
-
-Das endgültige Quellenverzeichnis wird in **privater Konfiguration** geführt, nicht als öffentliche Liste meiner privaten Projekte.
+Neue Quellen brauchen eine bewusste Freigabe. Besonders bei internen Betriebsdaten vor der Aufnahme prüfen, ob sie für diese private Instanz bestimmt sind.
