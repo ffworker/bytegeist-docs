@@ -39,6 +39,11 @@ jobs:
           zensical build --strict --clean -f .generated/mkdocs.yml
           test -f .generated/site/index.html
           test -f .generated/site/quellstand/index.html
+      - name: Verify hardened Caddy can execute with zero container capabilities
+        run: |
+          docker build -t bytegeist-docs-caddy:ci -f v2/deploy/Dockerfile v2/deploy
+          docker run --rm --user 10001:10001 --cap-drop ALL --security-opt no-new-privileges:true bytegeist-docs-caddy:ci version
+          NETBIRD_IPV4=100.96.0.1 DOCS_PORT=8085 docker compose -f v2/deploy/compose.yaml config -q
       - name: Ensure private source manifests are never tracked
         run: |
           if test -n "$(git ls-files v2/sources.private.yml v2/.generated)"; then
