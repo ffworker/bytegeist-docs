@@ -1,20 +1,20 @@
-# Was ist wirklich bestätigt?
+# Prüfstand und Recovery
 
-<div class="bg-eyebrow">DOKUMENTATION / EVIDENZ</div>
+<div class="bg-eyebrow">INTERN / BETRIEBSVERTRAUEN</div>
 
-Eine optisch schöne Anleitung kann trotzdem falsch oder veraltet sein. Deshalb sollen ihre Aussagen nicht mehr versprechen, als wir geprüft haben.
+Eine erfolgreich gebaute Dokumentationsseite beweist, dass Markdown gerendert wurde – nicht, dass die beschriebene Infrastruktur noch genauso läuft.
 
-| Information | Was sie beweist | Was sie nicht beweist |
+| Nachweis | Aussage | Grenze |
 | --- | --- | --- |
-| Git-Commit | Welcher Text aus dem Repo stammt | Ob die Maschine noch so läuft |
-| Abrufdatum | Wann die Quelle zuletzt abgeholt wurde | Ob die Anleitung inhaltlich richtig ist |
-| Erfolgreicher Site-Build | Dokumentation konnte verarbeitet werden | Ob Backup, SSH oder NFS funktionieren |
-| Datiertes, beobachtetes Ergebnis | Was beim konkreten Test tatsächlich sichtbar war | Dauerhafte Gesundheit aller Systeme |
-| Isolierter Restore-Test | Der dokumentierte Wiederherstellungsfall wurde getestet | Dass jeder andere Ausfall beherrschbar ist |
+| Git-Commit | Aus welcher Revision der Text stammt | Kein Beweis für den aktuellen Host-Zustand |
+| Abrufzeit | Wann die Quelle importiert wurde | Keine inhaltliche Prüfung |
+| Erfolgreicher Zensical-Build | Seiten lassen sich ausliefern | Kein Service- oder Restore-Test |
+| Datiertes Betreiberergebnis | Ein konkreter Funktionstest gelang | Keine garantierte künftige Verfügbarkeit |
+| Isolierter Restore | Der dokumentierte Wiederherstellungsfall funktioniert | Andere Ausfallarten bleiben separat zu prüfen |
 
-!!! warning "Lieber unbekannt als erfunden"
-    Wenn kein aktueller Live-Test vorliegt, steht dort **nicht geprüft**. Eine im Repo gelesene Behauptung darf keinen künstlichen grünen Status bekommen.
+!!! warning "Ungeprüft bleibt ungeprüft"
+    Bei einem Störungsfall zuerst feststellen, ob eine Anleitung aktuell und für die betroffene Systemversion gültig ist. Einen Git-Pin niemals mit einem Live-Health-Check verwechseln.
 
-## Verfügbarkeit bei einem echten Ausfall
+## Wenn die Infrastruktur ausfällt
 
-Das neue Docs-Hosting soll **nicht auf VPS02** laufen. Für einen Kubernetes-Ausfall muss es trotzdem einen einfachen lokalen/offline Zugriff auf die wichtigsten Runbooks geben. Der konkrete Zielhost wird erst nach einem Vergleich zwischen privatem Talos-Ingress und einem unabhängigen, stets laufenden Host gewählt.
+Bytegeist Docs soll unabhängig vom alten VPS02-Docs-Deployment privat bereitstehen. Zusätzlich gehört eine **offline nutzbare Kopie der wichtigsten Recovery-Runbooks** zum Betriebsverfahren. Die tatsächliche Wiederherstellung ist separat zu testen; ein erfolgreicher Build genügt nicht.

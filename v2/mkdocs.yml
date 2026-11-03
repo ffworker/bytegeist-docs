@@ -17,18 +17,18 @@ theme:
     - search.suggest
     - content.code.copy
   palette:
-    - scheme: default
-      primary: custom
-      accent: custom
-      toggle:
-        icon: material/weather-night
-        name: Dunkel
     - scheme: slate
       primary: custom
       accent: custom
       toggle:
         icon: material/weather-sunny
-        name: Hell
+        name: Zum hellen Modus wechseln
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Zum dunklen Modus wechseln
 plugins:
   - search
 markdown_extensions:
