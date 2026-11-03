@@ -1,33 +1,35 @@
-# Weniger Quellen. Mehr Orientierung.
+# Bytegeist Docs
 
-<div class="bg-eyebrow">BYTEGEIST / PRIVATE TECHNICAL NOTES</div>
+<div class="bg-eyebrow">INTERN / INFRASTRUKTUR / WISSENSBASIS</div>
 
 <div class="bg-lead">
-Die Dokumentation soll mir beim nächsten Problem **Zeit sparen** — nicht neue Arbeit machen.
+Meine private technische Dokumentation: Konfigurationen, Betriebsanleitungen, Entscheidungen und Wiederherstellung. Die Originaldokumente bleiben in ihren Repositories.
 </div>
 
 <div class="bg-grid">
   <a class="bg-card" href="quellen/">
-    <span class="bg-card-index">01 / QUELLEN</span>
-    <strong>Was gehört hier rein?</strong>
-    <span>Ich entscheide bewusst. Kein automatisches Spiegeln aller GitHub-Repositories.</span>
+    <span class="bg-card-index">01 / DOKUMENTATION</span>
+    <strong>Projekte und Quellen</strong>
+    <span>Welche Repositories eingebunden sind, wie ich sie pflege und wie ich neue Quellen ergänze.</span>
   </a>
   <a class="bg-card" href="pruefung/">
-    <span class="bg-card-index">02 / VERTRAUEN</span>
-    <strong>Was weiß ich wirklich?</strong>
-    <span>Quellrevision, letzter Abruf und wirklich getesteter Zustand bleiben getrennt.</span>
+    <span class="bg-card-index">02 / BETRIEB</span>
+    <strong>Prüfstand und Recovery</strong>
+    <span>Was ein Git-Stand beweist, wann ein Dienst zuletzt geprüft wurde und worauf ich mich verlassen kann.</span>
   </a>
 </div>
 
-## Dein privater Lesekatalog
+## Dokumentation finden
 
-Diese Seite wird aus bewusst ausgewählten Quellen erzeugt. Ohne private Quellenauswahl zeigt sie nur die neutrale Vorschau. **Quellstand** dokumentiert den letzten Abruf und den Git-Commit; das bestätigt keinen Live-Zustand von Hosts und Anwendungen.
+Die eingebundenen Projekte und ihre README-/docs-Seiten erscheinen in der Navigation. Die Suche durchsucht den tatsächlich ausgelieferten Dokumentationsstand.
 
-!!! note "Keine zweite Quelle der Wahrheit"
-    Änderungen gehören in das jeweilige Quell-Repository. Die persönliche Dokumentationsseite ist nur die ausgewählte, private Leseansicht.
+!!! info "Noch keine Projekte sichtbar?"
+    Dann wurde diese Ausgabe ohne ausgewählte Quellen gebaut. Das ist der isolierte Design-/Funktionstest, **nicht** meine fertige Wissensdatenbank. Für echte Inhalte muss die private Quellenliste aktiviert und die Site neu gebaut werden.
 
-## Was hier hineingehört
+## Grundregel
 
-Die wichtigen Betriebs- und Projektdokumentationen, nicht ein ungeprüfter Spiegel aller Experimente. Bei fehlenden oder veralteten Informationen wird die kanonische Quelle korrigiert, nicht dieser generierte Katalog.
+- **Quelle der Wahrheit:** die README- und docs-Dateien im jeweiligen Repository.
+- **Portal:** durchsuchbare, bewusst ausgewählte Lesekopie.
+- **Quellstand:** Git-Commit und Zeitpunkt des Imports – kein automatischer Nachweis, dass die Infrastruktur aktuell gesund ist.
 
-Wenn ein Repository fehlt, wird es **nicht automatisch** aufgenommen. Wenn eine Betriebsanleitung seit Monaten ungeprüft ist, wird das sichtbar und nicht als aktuell verkauft.
+Keine Werbung, kein öffentliches Portfolio und keine automatisch importierten Fremdinhalte.
