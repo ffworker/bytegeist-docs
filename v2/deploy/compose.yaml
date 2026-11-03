@@ -2,7 +2,10 @@
 # private manifest. The host port MUST bind to its NetBird overlay address.
 services:
   docs:
-    image: caddy:2.10.2-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bytegeist-docs-caddy:2.10.2-nocaps
     user: "10001:10001"
     ports:
       - "${NETBIRD_IPV4:?set_the_host_NetBird_IP}:${DOCS_PORT:-8085}:8080/tcp"
